@@ -131,4 +131,4 @@ dmypy.json
 
 # res of the simulator
 *.res
-simulator/scripts/edgeGraphData*
+simulator/edgeGraphData*
