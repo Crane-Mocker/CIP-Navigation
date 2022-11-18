@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# res of the simulator
+*.res
+simulator/scripts/edgeGraphData*
