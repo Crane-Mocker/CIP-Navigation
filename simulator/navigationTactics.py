@@ -35,6 +35,9 @@
 ##################################################################################
 
 
+import sys
+import os
+import re
 
 from vec2d import *
 from lineline import *
@@ -142,8 +145,7 @@ class AgentPIDTacticImpl:
 
   def getShipsOnACollisionPath(self, agentWorldModel):
     """
-    Compute a list of ships that are on path to potential collision 
-    with the agent's ship.
+    Compute the ship is on path to potential collision with the obstacle and other ships
 
     @type  agentWorldModel: AgentWorldModel 
     @param agentWorldModel: The belief state of the agent
@@ -167,6 +169,19 @@ class AgentPIDTacticImpl:
     myLineP1 = myPos - myDirection * 10000
     myLineP2 = myPos + myDirection * 10000
 
+		# obstacles
+    obstacleWithIndex = {}
+    obstacleIndex = 0
+    obstacleFile = open("input_files/obstacles_basicexample.py", "r")
+    obstacleLines = obstacleFile.readlines()
+    obstacleFile.close()
+
+    for index, line in enumerate(obstacleLines):
+      if re.findall(r'^obstacle[0-9]', line):
+        tmpStr = re.sub(r'\#.*', '', line)
+        tmpList = re.findall(r'\d+', tmpStr[tmpStr.find('('):])
+        obstacleWithIndex[obstacleIndex] = tmpList
+        obstacleIndex += 1
 
     # check potential collisions with any other ship
     dangerShipsStates = []
@@ -231,7 +246,33 @@ class AgentPIDTacticImpl:
             # collision danger
             dangerShipsStates.append(state)
 
-#    print 'dangerShipsStates', dangerShipsStates
+ 
+	# check if the line of the ship intersects the collision border
+      for i in range(0, obstacleIndex):
+        tmpNode1 = Vec2d(obstacleWithIndex[i][0], obstacleWithIndex[i][1])
+        tmpNode2 = Vec2d(obstacleWithIndex[i][2], obstacleWithIndex[i][3])
+        intersectionObstacle = line(myLineP1, myLineP2, tmpNode1, tmpNode2)
+        if intersection:
+          print("Collision detection warning!")
+          #tkMessageBox.showinfo('Collision detection warning!', 'ok')
+          myDistToIntersect= (intersection - myPos).get_length()
+#         print 'myDistToIntersect', myDistToIntersect
+          otherDistToIntersect = (intersection - otherPos).get_length()
+#        	print 'otherDistToIntersect', otherDistToIntersect
+        # if intersection is ahead of us or not too far behind us
+        # TODO: parametrize tune threshold of -50 
+          if myDistToIntersect > -50 and otherDistToIntersect > -50:
+            myTimeToIntersect = myDistToIntersect / mySpeed if mySpeed > 0 else 999999
+#           print 'myTimeToIntersect', myTimeToIntersect
+            otherTimeToIntersect = otherDistToIntersect / otherSpeed if otherSpeed > 0 else 999999
+#          	print 'otherTimeToIntersect', otherTimeToIntersect
+
+          # TODO: tune thresholds
+            if myTimeToIntersect < 60 and otherTimeToIntersect < 60 and abs(myTimeToIntersect - otherTimeToIntersect) < 30:
+            # collision danger
+              dangerShipsStates.append(state)
+
+   	print 'dangerShipsStates', dangerShipsStates
     return dangerShipsStates 
       
       
@@ -619,6 +660,34 @@ class AgentRRTTactic(NavigateToPointTactic):
     "Implements abstract method."
     estimatedState = agentWorldModel.getEstimatedExtShipState()
     estimatedPos = (estimatedState.x, estimatedState.y)
+    #print(estimatedState.x, type(estimatedState.x))
+
+		#collision detection
+    #myPos = Vec2d(estimatedState.x, estimatedState.y)
+    # obstacles
+    obstacleWithIndex = {}
+    obstacleIndex = 0
+    obstacleFile = open("input_files/obstacles_basicexample.py", "r")
+    obstacleLines = obstacleFile.readlines()
+    obstacleFile.close()
+
+    for index, line in enumerate(obstacleLines):
+      if re.findall(r'^obstacle[0-9]', line):
+        tmpStr = re.sub(r'\#.*', '', line)
+        tmpList = re.findall(r'\d+', tmpStr[tmpStr.find('('):])
+        obstacleWithIndex[obstacleIndex] = tmpList
+        obstacleIndex += 1
+	# check if the line of the ship intersects the collision border
+      for i in range(0, obstacleIndex):
+        #c: (estimatedState.x, estimatedState.y)
+        #a:(obstacleWithIndex[i][0], obstacleWithIndex[i][1])
+        #b:(obstacleWithIndex[i][2], obstacleWithIndex[i][3])
+        #print int(obstacleWithIndex[i][0])
+        #intersectionObstacle = line(myPos, myPos, tmpNode1, tmpNode2)
+        if isBetween(int(obstacleWithIndex[i][0]), int(obstacleWithIndex[i][1]), int(obstacleWithIndex[i][2]), int(obstacleWithIndex[i][3]), float(estimatedState.x), float(estimatedState.y)):
+          #print("Collision detection warning!", int(obstacleWithIndex[i][0]))
+          tkMessageBox.showinfo('Collision detection warning!', 'ok')
+
     return self.atPoint(estimatedPos, self.goalPoint)
 
   def getGoalPos(self):

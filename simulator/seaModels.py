@@ -399,10 +399,12 @@ class Obstacle:
     @param points: a list of points - connecting each consecutive pair of points by line defines the obstacle's shape.
     """
     self.points = points
+# obstacles in a circle
 #    if points[0] != points[-1]: 
 #      raise Exception("First point of an obstacle should be equal to the last point")
-    if len(points) != 2:
-      raise Exception("We currently support only straight line obstacles (though this could easily be changed)")
+# obstacles in a straight line of 2 points
+#    if len(points) != 2:
+#      raise Exception("We currently support only straight line obstacles (though this could easily be changed)")
 
   def __str__(self):
     res = "\nObstacle:" 

@@ -45,6 +45,7 @@
 
 # vector class from pygame cookbook http://www.pygame.org/wiki/2DVectorClass
 from vec2d import *
+import math
 
 def lineline(A,B,C,D):
     """ Line-line intersection algorithm,
@@ -62,6 +63,13 @@ def lineline(A,B,C,D):
         return Vec2d(   A.x+(ua*(B.x-A.x)), \
                         A.y+(ua*(B.y-A.y)))
     return None
+
+def distance(ax, ay, bx, by):
+  return math.sqrt((ax - bx)**2 + (ay - by)**2)
+
+def isBetween(ax, ay, bx, by, cx, cy):
+  return distance(ax, ay, cx, cy) + distance(cx, cy, bx, by) == distance(ax, ay, bx, by)
+
 
 def linelinedemo():
     """ Graphical demo showing the line line intersection algorithm.
